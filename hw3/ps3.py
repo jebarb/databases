@@ -135,22 +135,20 @@ def stationpopularity(db):
     appearances = pandas.read_sql_query('SELECT A.latitude, A.longitude\
                                         FROM Appearance A',
                                         sqlite3.connect(db))
-    stationsorig = pandas.read_sql_query('SELECT S.stationID, S.latitude, S.longitude\
+    stations = pandas.read_sql_query('SELECT S.stationID, S.latitude, S.longitude\
                                             FROM SupplyStations S',
                                             sqlite3.connect(db))
-    stations = stationsorig.copy()
     stations['count'] = 0
     for applat, applong in appearances.values:
-        min_dist = 99999999999999999
-        count = 0
+        min_dist = float('inf')
+        pos = 0
         station = 0
-        for statid, statlat, statlong in stationsorig.values:
-            applat, applong = 0,1
+        for statid, statlat, statlong, count in stations.values:
             dist = numpy.sqrt(numpy.power(applat-statlat, 2)+numpy.power(applong-statlong, 2))
             if dist < min_dist:
                 min_dist = dist
-                station = count
-            count += 1
+                station = pos
+            pos += 1
         stations.set_value(station, 'count', stations['count'][station] + 1)
     stations.sort_values('count', axis=0, ascending=False, inplace=True, kind='quicksort')
     res = []
